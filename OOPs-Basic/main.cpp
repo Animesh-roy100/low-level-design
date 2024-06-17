@@ -1,4 +1,5 @@
 #include<iostream>
+using namespace std;
 
 class Hero {
     // properties
@@ -36,7 +37,11 @@ int main() {
 
     // Static Allocation
     Hero h1;
-    // std::cout <<"size : " << sizeof(h1) << std::endl;
+    h1.setHealth(80);
+    h1.setLevel('B');
+    cout << "level is " << h1.level << endl;
+    cout << "health is " << h1.getHealth() << endl;
+    std::cout <<"size : " << sizeof(h1) << std::endl;
 
     // h1.health = 20;
     // h1.setHealth(20);
@@ -48,6 +53,11 @@ int main() {
 
     // Dynamic allocation
     Hero *h2 = new Hero;
+    h2->setHealth(70);
+    h2->setLevel('A');
+    cout << "level is " << (*h2).level << endl;
+    cout << "health is " << h2->getHealth() << endl;
+
 
 
 
