@@ -1,4 +1,4 @@
-package schedular
+package scheduler
 
 import (
 	"container/heap"
@@ -20,15 +20,39 @@ type TaskSchedular struct {
 	running   bool
 	taskMap   map[string]*taskqueue.Task // for status tracking
 	doneChans map[string]chan bool       // signal task completion
+	taskChan  chan *taskqueue.Task       // channel for worker pool
+	workers   int
 }
 
-func NewTaskScheduler() *TaskSchedular {
-	return &TaskSchedular{
+func NewTaskScheduler(numWorkers int) *TaskSchedular {
+	s := &TaskSchedular{
 		queue:     make(taskqueue.TaskQueue, 0),
 		stopChan:  make(chan struct{}),
 		running:   false,
 		taskMap:   make(map[string]*taskqueue.Task),
 		doneChans: make(map[string]chan bool),
+		taskChan:  make(chan *taskqueue.Task, numWorkers),
+		workers:   numWorkers,
+	}
+	// start workers for task execution
+	s.startWorkers()
+	return s
+}
+
+func (s *TaskSchedular) startWorkers() {
+	for workerID := range make([]int, s.workers) {
+		go func() {
+			fmt.Printf("Worker %d started\n", workerID)
+			for {
+				select {
+				case task := <-s.taskChan:
+					s.executeTask(task)
+				case <-s.stopChan:
+					fmt.Printf("Worker %d stopped\n", workerID)
+					return
+				}
+			}
+		}()
 	}
 }
 
@@ -54,7 +78,9 @@ func (s *TaskSchedular) Start() {
 			select {
 			case <-time.After(delay):
 				task := heap.Pop(&s.queue).(*taskqueue.Task)
-				s.executeTask(task)
+				task.Status = "running"
+				fmt.Printf("Task %s assigned to worker pool (Priority: %d) at %v\n", task.ID, task.Priority, time.Now())
+				s.taskChan <- task
 			case <-s.stopChan:
 				fmt.Println("Scheduler stopped")
 				s.running = false
@@ -66,34 +92,28 @@ func (s *TaskSchedular) Start() {
 }
 
 func (s *TaskSchedular) executeTask(task *taskqueue.Task) {
-	task.Status = "running"
-	fmt.Printf("Executing task: %s (Priority: %d) at %v\n", task.ID, task.Priority, time.Now())
+	attempts := 0
+	for attempts <= task.MaxRetries {
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Printf("Task %s panicked: %v\n", task.ID, r)
+			}
+		}()
 
-	go func(t *taskqueue.Task) {
-		attempts := 0
-		for attempts <= t.MaxRetries {
-			defer func() {
-				if r := recover(); r != nil {
-					fmt.Printf("Task %s panicked: %v\n", t.ID, r)
-				}
-			}()
+		task.Job()
+		task.Status = "completed"
+		s.doneChans[task.ID] <- true
+		break // Success
+	}
 
-			t.Job()
-			t.Status = "completed"
-			s.doneChans[t.ID] <- true
-			break // Success, exit retry loop
-		}
-
-		// Handle recurrence
-		if t.Interval > 0 && t.Status == "completed" {
-			t.ExecutedAt = time.Now().Add(t.Interval)
-			t.Status = "pending"
-			heap.Push(&s.queue, t)
-		} else if t.Status != "completed" {
-			fmt.Printf("Task %s failed after %d retries\n", t.ID, t.MaxRetries)
-			s.doneChans[t.ID] <- false
-		}
-	}(task)
+	if task.Interval > 0 && task.Status == "completed" {
+		task.ExecutedAt = time.Now().Add(task.Interval)
+		task.Status = "pending"
+		heap.Push(&s.queue, task)
+	} else if task.Status != "completed" {
+		fmt.Printf("Task %s failed after %d retries\n", task.ID, task.MaxRetries)
+		s.doneChans[task.ID] <- false
+	}
 }
 
 func (s *TaskSchedular) Stop() {
