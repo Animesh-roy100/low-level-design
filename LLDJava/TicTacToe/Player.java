@@ -1,4 +1,4 @@
-package TicTacToe;
+package LLDJava.TicTacToe;
 
 public class Player {
     String name;

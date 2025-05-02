@@ -1,4 +1,4 @@
-package TicTacToe;
+package LLDJava.TicTacToe;
 
 public class CellX extends Cell {
     CellX() {

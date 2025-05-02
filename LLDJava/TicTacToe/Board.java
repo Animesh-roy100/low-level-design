@@ -1,4 +1,4 @@
-package TicTacToe;
+package LLDJava.TicTacToe;
 
 public class Board {
     public int size;
