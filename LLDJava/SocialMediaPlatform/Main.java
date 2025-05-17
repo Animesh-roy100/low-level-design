@@ -1,3 +1,4 @@
+package LLDJava.SocialMediaPlatform;
 import java.util.*;
 
 class User {
