@@ -396,6 +396,8 @@ class Store {
     }
 }
 
+
+// TODO: Singleton Pattern for VehicleRentalSystem to ensure a single instance
 class VehicleRentalSystem {
     private List<Store> stores = new ArrayList<>();
     private List<User> users = new ArrayList<>();
