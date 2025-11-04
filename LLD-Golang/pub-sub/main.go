@@ -108,6 +108,7 @@ func (s *Subscriber) Listen() {
 
 // ------------------------------------------------
 // Broker represents the pub-sub broker.
+// Broker needs to be singleton in real-world scenarios.
 
 type Subscribers map[string]*Subscriber
 
