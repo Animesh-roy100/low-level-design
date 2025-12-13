@@ -51,7 +51,7 @@ func main() {
 */
 
 type Cache interface {
-	Get(key string) string
+	Get(key string) (string, bool)
 }
 
 type InMemoryCache struct {
@@ -62,8 +62,9 @@ func NewInMemoryCache() *InMemoryCache {
 	return &InMemoryCache{store: make(map[string]string)}
 }
 
-func (c *InMemoryCache) Get(key string) string {
-	return c.store[key]
+func (c *InMemoryCache) Get(key string) (string, bool) {
+	val, ok := c.store[key]
+	return val, ok
 }
 
 type RedisCache struct {
@@ -74,8 +75,9 @@ func NewRedisCache() *RedisCache {
 	return &RedisCache{store: make(map[string]string)}
 }
 
-func (c *RedisCache) Get(key string) string {
-	return c.store[key]
+func (c *RedisCache) Get(key string) (string, bool) {
+	val, ok := c.store[key]
+	return val, ok
 }
 
 // func main() {
