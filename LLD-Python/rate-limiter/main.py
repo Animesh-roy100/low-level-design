@@ -1,4 +1,3 @@
-# cook your dish here
 from abc import ABC, abstractmethod
 import collections
 import threading
