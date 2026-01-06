@@ -29,9 +29,9 @@ class SlidingWindowRateLimiter(RateLimiter):
             
             if len(requests) < self.max_requests:
                 requests.append(current_time)
-                print("Sliding Window: True")
+                # print("Sliding Window: True")
                 return True
-            print("Sliding Window: False")
+            # print("Sliding Window: False")
             return False
         
 
@@ -59,24 +59,35 @@ class TokenBucketRateLimiter(RateLimiter):
 
             if bucket['tokens'] >= 1:
                 bucket['tokens'] -= 1
-                print("Token Bucket: True")
+                # print("Token Bucket: True")
                 return True
-            print("Token Bucket: False")
+            # print("Token Bucket: False")
             return False
 
-class RateLimiterFactory:
-    @staticmethod
-    def create(rate_limiter_type: str) -> RateLimiter:
-        if rate_limiter_type == 'token_bucket':
-            return TokenBucketRateLimiter(100, 100/60)
-        elif rate_limiter_type == 'sliding_window':
-            return SlidingWindowRateLimiter(100, 60.0)
-        else:
-            raise ValueError(f"Unknown Limiter Type: {rate_limiter_type}")
+# class RateLimiterFactory:
+#     @staticmethod
+#     def create(rate_limiter_type: str) -> RateLimiter:
+#         if rate_limiter_type == 'token_bucket':
+#             return TokenBucketRateLimiter(100, 100/60)
+#         elif rate_limiter_type == 'sliding_window':
+#             return SlidingWindowRateLimiter(100, 60.0)
+#         else:
+#             raise ValueError(f"Unknown Limiter Type: {rate_limiter_type}")
+
+def RateLimiterFactory(rate_limiter_type: str) -> RateLimiter:
+    if rate_limiter_type == 'token_bucket':
+        return TokenBucketRateLimiter(100, 100/60)
+    elif rate_limiter_type == 'sliding_window':
+        return SlidingWindowRateLimiter(100, 60.0)
+    else:
+        raise ValueError(f"Unknown Limiter Type: {rate_limiter_type}")
         
 if __name__ == "__main__":
-    sliding_window = RateLimiterFactory.create('sliding_window')
-    token_bucket = RateLimiterFactory.create('token_bucket')
+    # sliding_window = RateLimiterFactory.create('sliding_window')
+    # token_bucket = RateLimiterFactory.create('token_bucket')
+    sliding_window = RateLimiterFactory('sliding_window')
+    token_bucket = RateLimiterFactory('token_bucket')
+    # test = RateLimiterFactory('test')
 
     user = "1"
 
